@@ -29,7 +29,7 @@ os.environ['chromedriver_update'] = 'False'
 
 class webscraping():
 
-    def __init(self, sql = None):
+    def __init__(self, sql = None):
         self.sql = sql
         self.setup()
 
@@ -73,6 +73,9 @@ class webscraping():
                     break
                 waiting += 1
             driver.quit()
+
+    def view(self, script1, body, script2):
+        pass
 
     def _run(self, func, args:list):
         pool = mp.Pool()
