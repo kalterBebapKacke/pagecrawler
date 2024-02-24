@@ -25,6 +25,7 @@ basic_request_header = MappingProxyType(
     'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0'
     }
 )
+
 os.environ['chromedriver_update'] = 'False'
 
 class webscraping():
@@ -68,7 +69,7 @@ class webscraping():
                 print(waiting)
                 if source.__contains__(keyword):
                     driver.quit()
-                    return source
+                    return BeautifulSoup(source, 'html.parser')
                 if waiting == 40:
                     break
                 waiting += 1
@@ -83,6 +84,9 @@ class webscraping():
         return res
 
     def get_in_string(self, string:str, Str1, Str2):
-        string = string[string.find(Str1) + len(Str1):]
-        string = string[:string.find(Str2)]
-        return string
+        if string.find(Str1) != -1:
+            string = string[string.find(Str1) + len(Str1):]
+            string = string[:string.find(Str2)]
+            return string
+        else:
+            return False
