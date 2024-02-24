@@ -75,9 +75,6 @@ class webscraping():
                 waiting += 1
             driver.quit()
 
-    def view(self, script1, body, script2):
-        pass
-
     def _run(self, func, args:list):
         pool = mp.Pool()
         res = pool.starmap(func, args)
