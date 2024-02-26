@@ -66,3 +66,12 @@ def generate_chart(type, name, labels, datasets, high:list = (100, 100), func_co
     scripts = func_script(name, labels, dataset, config)
     return func_html(name, high), scripts
 
+def basic_display_info_dicit(info:dict, display):
+    Return = list()
+    keys = info.keys()
+    for x in keys:
+        Return.append(f'{info[display]} : ')
+        Return.append(f'    {x} : {info[x]}')
+    Return = '''
+    '''.join(Return)
+    return f'''<span>{Return}</span>'''
