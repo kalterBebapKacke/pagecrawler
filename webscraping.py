@@ -42,7 +42,7 @@ class webscraping():
     def _request(self, url, method='get', headers=basic_request_header, keyword=''):
         ans = requests.request(method, url=url, headers=headers).text
         soup = BeautifulSoup(ans, 'html.parser')
-        if keyword == '' :
+        if keyword == '':
             return soup
         elif ans.__contains__(keyword):
             return soup
