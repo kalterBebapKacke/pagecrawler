@@ -17,10 +17,16 @@ def request(url:str, keyword:str, headers:MappingProxyType=MappingProxyType({}))
     while True:
         ans = requests.request("get", url=url, headers=headers).text
         if ans.__contains__(keyword):
-            break
+            return  ans
         if generator:
             headers = gen.__next__()
+            if headers == 0:
+                break
+    return selenium_requests()
 
 
-def selenium_requests():
-    pass
+def selenium_requests(url:str, keyword:str):
+    return NotImplemented
+
+url = "https://lichess.org/"
+print(request(url, "lichess"))
