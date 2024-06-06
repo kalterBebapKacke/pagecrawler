@@ -10,7 +10,7 @@ import time
 from typing import TypeVar
 
 
-basic_request_header = MappingProxyType(
+basic_request_header = dict(
     {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
     'Accept-Language' : 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7',
@@ -29,7 +29,7 @@ basic_request_header = MappingProxyType(
 
 os.environ['chromedriver_update'] = 'False'
 
-request_info = tuple[str, str, MappingProxyType, str]
+request_info = tuple[str, str, dict, str]
 
 def func_request(webscraping_class, args):
     return webscraping_class._request(*args)
@@ -45,7 +45,9 @@ class webscraping():
             #driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
             os.environ['chromedriver_update'] = 'True'
 
-    def _request(self, url:str, method:str='get', headers:MappingProxyType=basic_request_header, keyword:str=''):
+    def _request(self, url:str, method:str='get', headers:dict=None, keyword:str= ''):
+        if headers is None:
+            headers = basic_request_header
         ans = requests.request(method, url=url, headers=headers).text
         soup = BeautifulSoup(ans, 'html.parser')
         if keyword == '':
@@ -86,7 +88,9 @@ class webscraping():
             new_list = [self]
             new_list.append(single_info)
             request_info_[i] = new_list
-        res = self._run(process, func_request, request_info_)
+        print(request_info_)
+        print(len(request_info_[0]))
+        res = self._run(process=process, func=func_request, args=request_info_)
         print(res)
 
     def _run(self,process:int, func, args:iter):
@@ -108,4 +112,4 @@ def test(arg):
 if __name__ == '__main__':
     c = webscraping()
     a:request_info = ('https://stackoverflow.com/questions/72868256/chromedrivermanager-install-doesnt-work-webdriver-manager', 'get', basic_request_header, 'ChromeDriverManager()')
-    c.request([a])
+    print(c.request([a, a]))
