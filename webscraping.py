@@ -31,7 +31,7 @@ os.environ['chromedriver_update'] = 'False'
 
 request_info = tuple[str, str, MappingProxyType, str]
 
-def __request(webscraping_class, args):
+def func_request(webscraping_class, args):
     return webscraping_class._request(*args)
 
 class webscraping():
@@ -82,7 +82,11 @@ class webscraping():
             driver.quit()
 
     def request(self, request_info_:list[request_info], process:int=1):
-        res = self._run(process, self._request, request_info_)
+        for i, single_info in enumerate(request_info_):
+            new_list = [self]
+            new_list.append(single_info)
+            request_info_[i] = new_list
+        res = self._run(process, func_request, request_info_)
         print(res)
 
     def _run(self,process:int, func, args:iter):
@@ -104,5 +108,4 @@ def test(arg):
 if __name__ == '__main__':
     c = webscraping()
     a:request_info = ('https://stackoverflow.com/questions/72868256/chromedrivermanager-install-doesnt-work-webdriver-manager', 'get', basic_request_header, 'ChromeDriverManager()')
-    #c.request([a])
-    print(__request(c, a))
+    c.request([a])
