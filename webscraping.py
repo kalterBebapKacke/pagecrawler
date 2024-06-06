@@ -7,6 +7,7 @@ import multiprocessing as mp
 from bs4 import BeautifulSoup
 from selenium_stealth import stealth
 import time
+from selenium.webdriver.chrome.service import Service as ChromeService
 
 
 basic_request_header = MappingProxyType(
@@ -36,10 +37,10 @@ class webscraping():
 
     def setup(self):
         if os.environ['chromedriver_update'] == 'False':
-            ChromeDriverManager().install()
+            #driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
             os.environ['chromedriver_update'] = 'True'
 
-    def _request(self, url, method='get', headers=basic_request_header, keyword=''):
+    def _request(self, url:str, method='get', headers=basic_request_header, keyword=''):
         ans = requests.request(method, url=url, headers=headers).text
         soup = BeautifulSoup(ans, 'html.parser')
         if keyword == '':
@@ -75,10 +76,12 @@ class webscraping():
                 waiting += 1
             driver.quit()
 
-    def _run(self, func, args:list):
-        pool = mp.Pool()
-        res = pool.starmap(func, args)
-        return res
+    def request(self, scraping_info):
+        pass
+
+    def _run(self,process:int, func, args:iter):
+        with mp.Pool(processes = process) as pool:
+            return pool.map(func, args)
 
     def get_in_string(self, string:str, Str1, Str2):
         if string.find(Str1) != -1:
@@ -87,3 +90,11 @@ class webscraping():
             return string
         else:
             return False
+
+def test(arg):
+    time.sleep(3)
+    return arg
+
+if __name__ == '__main__':
+    c = webscraping()
+    print(c._run(10, test, (1,2,3,5,7,9,9,10)))
