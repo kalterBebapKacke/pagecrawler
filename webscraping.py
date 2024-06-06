@@ -7,7 +7,7 @@ import multiprocessing as mp
 from bs4 import BeautifulSoup
 from selenium_stealth import stealth
 import time
-from selenium.webdriver.chrome.service import Service as ChromeService
+from typing import TypeVar
 
 
 basic_request_header = MappingProxyType(
@@ -29,6 +29,9 @@ basic_request_header = MappingProxyType(
 
 os.environ['chromedriver_update'] = 'False'
 
+request_info = tuple[str, str, MappingProxyType, str]
+
+
 class webscraping():
 
     def __init__(self, sql = None):
@@ -40,7 +43,7 @@ class webscraping():
             #driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
             os.environ['chromedriver_update'] = 'True'
 
-    def _request(self, url:str, method='get', headers=basic_request_header, keyword=''):
+    def _request(self, url:str, method:str='get', headers:MappingProxyType=basic_request_header, keyword:str=''):
         ans = requests.request(method, url=url, headers=headers).text
         soup = BeautifulSoup(ans, 'html.parser')
         if keyword == '':
@@ -76,7 +79,7 @@ class webscraping():
                 waiting += 1
             driver.quit()
 
-    def request(self, scraping_info):
+    def request(self, request_info_:list[request_info], process:int=3):
         pass
 
     def _run(self,process:int, func, args:iter):
@@ -97,4 +100,5 @@ def test(arg):
 
 if __name__ == '__main__':
     c = webscraping()
-    print(c._run(10, test, (1,2,3,5,7,9,9,10)))
+    a:request_info = ('1', '2', basic_request_header, '524')
+    c.request()
