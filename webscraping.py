@@ -7,14 +7,10 @@ import multiprocessing as mp
 from bs4 import BeautifulSoup
 from selenium_stealth import stealth
 import time
-
-if __name__ == '__main__':
-    import headers
-else:
-    from . import headers
+import headers
 import sys
 
-sys.setrecursionlimit(10000)
+#sys.setrecursionlimit(10000)
 
 basic_request_header = dict(
     {
@@ -42,17 +38,20 @@ def headers_generator():
     yield 0
 
 
-def _request(url: str, keyword: str, headers: dict = None):
+def _request(url: str, keyword: str, headers: dict = None, soup:bool=False):
     if headers is None:
         headers = {}
     ans = requests.request("get", url=url, headers=headers).text
     if ans.__contains__(keyword):
-        return ans
+        if soup:
+            return BeautifulSoup(ans, 'html.parser')
+        else:
+            return ans
     else:
-        return selenium_requests(url, keyword)
+        return selenium_requests(url, keyword, soup)
 
 
-def selenium_requests(url: str, keyword: str):
+def selenium_requests(url: str, keyword: str, soup:bool=False):
     options = webdriver.ChromeOptions()
     options.add_argument("start-maximized")
     options.add_argument("--headless")
@@ -75,7 +74,10 @@ def selenium_requests(url: str, keyword: str):
         print(waiting)
         if source.__contains__(keyword):
             driver.quit()
-            return BeautifulSoup(source, 'html.parser')
+            if soup:
+                return BeautifulSoup(source, 'html.parser')
+            else:
+                return source
         if waiting == 40:
             break
         waiting += 1
@@ -83,41 +85,26 @@ def selenium_requests(url: str, keyword: str):
 
 
 
-
-def func_request(webscraping_class, args):
-    return webscraping_class._request(*args)
-
-
-def setup(self):
+def setup():
     if os.environ['chromedriver_update'] == 'False':
         # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
         os.environ['chromedriver_update'] = 'True'
 
-    def request(self, request_info_: list[request_info], process: int = 1):
-        for i, single_info in enumerate(request_info_):
-            new_list = [self]
-            new_list.append(single_info)
-            request_info_[i] = new_list
-        print(request_info_)
-        print(len(request_info_[0]))
-        res = self._run(process=process, func=func_request, args=request_info_)
-        print(res)
+def request(request_info_: list[request_info], process: int = 1):
+    with mp.Pool(processes=process) as pool:
+        res = pool.starmap(_request, request_info_)
+    print(res)
 
 
-    def get_in_string(self, string: str, Str1, Str2):
-        if string.find(Str1) != -1:
-            string = string[string.find(Str1) + len(Str1):]
-            string = string[:string.find(Str2)]
-            return string
-        else:
-            return False
-
-
-def test(arg):
-    time.sleep(3)
-    return arg
+def get_in_string(string: str, Str1, Str2):
+    if string.find(Str1) != -1:
+        string = string[string.find(Str1) + len(Str1):]
+        string = string[:string.find(Str2)]
+        return string
+    else:
+        return False
 
 
 if __name__ == '__main__':
     a: request_info = ('https://www.ecosia.org/?c=de', '', basic_request_header)
-    print(c.request([a, a]))
+    print(request([a, a]))
