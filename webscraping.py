@@ -7,7 +7,10 @@ import multiprocessing as mp
 from bs4 import BeautifulSoup
 from selenium_stealth import stealth
 import time
-from typing import TypeVar
+if __name__ == '__main__':
+    import headers
+else:
+    from . import headers
 import sys
 sys.setrecursionlimit(10000)
 
@@ -28,6 +31,31 @@ basic_request_header = dict(
     'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0'
     }
 )
+
+def headers_generator():
+    for x in headers.list_headers.values():
+        yield x
+    yield 0
+
+def _request(url:str, keyword:str, headers:MappingProxyType=MappingProxyType({})):
+    generator = False
+    gen = None
+    if headers == MappingProxyType({}):
+        generator = True
+        gen = headers_generator()
+        headers = gen.__next__()
+    while True:
+        ans = requests.request("get", url=url, headers=headers).text
+        if ans.__contains__(keyword):
+            return ans
+        if generator:
+            headers = gen.__next__()
+            if headers == 0:
+                break
+    return selenium_requests(url, keyword)
+
+def selenium_requests(url:str, keyword:str):
+    return NotImplemented
 
 os.environ['chromedriver_update'] = 'False'
 

@@ -17,12 +17,12 @@ def request(url:str, keyword:str, headers:MappingProxyType=MappingProxyType({}))
     while True:
         ans = requests.request("get", url=url, headers=headers).text
         if ans.__contains__(keyword):
-            return  ans
+            return ans
         if generator:
             headers = gen.__next__()
             if headers == 0:
                 break
-    return selenium_requests()
+    return selenium_requests(url, keyword)
 
 
 def selenium_requests(url:str, keyword:str):
