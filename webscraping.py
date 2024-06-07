@@ -33,7 +33,7 @@ basic_request_header = dict(
     }
 )
 
-request_info = tuple[str, str, dict, str]
+request_info = tuple[str, str, dict]
 
 
 def headers_generator():
@@ -103,9 +103,6 @@ def setup(self):
         res = self._run(process=process, func=func_request, args=request_info_)
         print(res)
 
-    def _run(self, process: int, func, args: iter):
-        with mp.Pool(processes=process) as pool:
-            return pool.starmap(func, args)
 
     def get_in_string(self, string: str, Str1, Str2):
         if string.find(Str1) != -1:
@@ -122,6 +119,5 @@ def test(arg):
 
 
 if __name__ == '__main__':
-    c = webscraping()
-    a: request_info = ('https://www.ecosia.org/?c=de', 'get', basic_request_header, '')
+    a: request_info = ('https://www.ecosia.org/?c=de', '', basic_request_header)
     print(c.request([a, a]))
