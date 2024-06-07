@@ -1,16 +1,13 @@
 import os
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
-from types import MappingProxyType
 import requests
 import multiprocessing as mp
 from bs4 import BeautifulSoup
 from selenium_stealth import stealth
 import time
 import headers
-import sys
-
-#sys.setrecursionlimit(10000)
+from selenium.webdriver.chrome.service import Service as ChromeService
 
 basic_request_header = dict(
     {
@@ -31,33 +28,36 @@ basic_request_header = dict(
 
 request_info = tuple[str, str, dict]
 
-
 def headers_generator():
     for x in headers.list_headers.values():
         yield x
     yield 0
 
 
-def _request(url: str, keyword: str, headers: dict = None, soup:bool=False):
+def _request(url: str, keyword: str, headers: dict = None, soup:bool=False, max_retry:int=2, wait:int=0):
     if headers is None:
         headers = {}
-    ans = requests.request("get", url=url, headers=headers).text
-    if ans.__contains__(keyword):
-        if soup:
-            return BeautifulSoup(ans, 'html.parser')
+    retry = 0
+    while retry != max_retry:
+        ans = requests.request("get", url=url, headers=headers).text
+        if ans.__contains__(keyword):
+            if soup:
+                return BeautifulSoup(ans, 'html.parser')
+            else:
+                return ans
         else:
-            return ans
-    else:
-        return selenium_requests(url, keyword, soup)
+            time.sleep(wait)
+            retry += 1
+    return selenium_requests(url, keyword, soup)
 
 
-def selenium_requests(url: str, keyword: str, soup:bool=False):
+def selenium_requests(url: str, keyword: str, soup:bool=False, max_retry:int=2, wait:int=0):
     options = webdriver.ChromeOptions()
     options.add_argument("start-maximized")
     options.add_argument("--headless")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
     stealth(driver,
             languages=["en-US", "en"],
             vendor="Google Inc.",
@@ -67,33 +67,34 @@ def selenium_requests(url: str, keyword: str, soup:bool=False):
             fix_hairline=True,
             )
     driver.get(url)
-    waiting = 0
-    while True:
-        time.sleep(waiting)
+    retry = 0
+    while retry != max_retry:
+        time.sleep(wait)
         source = driver.page_source
-        print(waiting)
+        print(retry)
         if source.__contains__(keyword):
             driver.quit()
             if soup:
                 return BeautifulSoup(source, 'html.parser')
             else:
                 return source
-        if waiting == 40:
-            break
-        waiting += 1
+        retry += 1
     driver.quit()
-
-
 
 def setup():
     if os.environ['chromedriver_update'] == 'False':
         # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
         os.environ['chromedriver_update'] = 'True'
 
-def request(request_info_: list[request_info], process: int = 1):
+def multi_request(request_info_: list[request_info], process: int = 1, soup:bool=False, max_retry:int=2, wait:int=0):
+    for i, info in enumerate(request_info_):
+        _new = [x for x in info]
+        _new.append(soup)
+        _new.append(max_retry)
+        _new.append(wait)
     with mp.Pool(processes=process) as pool:
         res = pool.starmap(_request, request_info_)
-    print(res)
+    return res
 
 
 def get_in_string(string: str, Str1, Str2):
@@ -107,4 +108,4 @@ def get_in_string(string: str, Str1, Str2):
 
 if __name__ == '__main__':
     a: request_info = ('https://www.ecosia.org/?c=de', '', basic_request_header)
-    print(request([a, a]))
+    print(multi_request([a, a]))
