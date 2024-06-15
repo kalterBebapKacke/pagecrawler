@@ -1,2 +1,2 @@
-from . import webscraping
+from webscraping import *
 from . import view
