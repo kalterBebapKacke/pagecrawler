@@ -6,7 +6,7 @@ import multiprocessing as mp
 from bs4 import BeautifulSoup
 from selenium_stealth import stealth
 import time
-import headers
+from . import headers
 from selenium.webdriver.chrome.service import Service as ChromeService
 
 basic_request_header = dict(
