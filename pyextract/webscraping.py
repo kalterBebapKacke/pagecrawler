@@ -6,7 +6,7 @@ import multiprocessing as mp
 from bs4 import BeautifulSoup
 from selenium_stealth import stealth
 import time
-import headers
+import headers as header_
 from selenium.webdriver.chrome.service import Service as ChromeService
 
 basic_request_header = dict(
@@ -28,18 +28,18 @@ basic_request_header = dict(
 
 request_info = tuple[str, str, dict]
 
-def headers_generator():
-    for x in headers.list_headers.values():
-        yield x
-    yield 0
 
 
-def _request(url: str, keyword: str, headers: dict = None, soup:bool=False, max_retry:int=2, wait:int=0):
+def _request(url: str, keyword: str, headers: dict = None, soup:bool=False, max_retry:int=2, wait:int=0, db=None):
     if headers is None:
-        headers = {}
+        header_class = header_.headers_generator(db)
     retry = 0
     while retry != max_retry:
-        ans = requests.request("get", url=url, headers=headers).text
+        if headers is None:
+            r_header = header_class.next(url)
+            ans = requests.request("get", url=url, headers=r_header).text
+        else:
+            ans = requests.request("get", url=url, headers=headers).text
         if ans.__contains__(keyword):
             if soup:
                 return BeautifulSoup(ans, 'html.parser')
@@ -86,12 +86,13 @@ def setup():
         # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
         os.environ['chromedriver_update'] = 'True'
 
-def multi_request(request_info_: list[request_info], process: int = 1, soup:bool=False, max_retry:int=2, wait:int=0):
+def multi_request(request_info_: list[request_info], process: int = 1, soup:bool=False, max_retry:int=2, wait:int=0, db=None):
     for i, info in enumerate(request_info_):
         _new = [x for x in info]
         _new.append(soup)
         _new.append(max_retry)
         _new.append(wait)
+        _new.append(db)
     with mp.Pool(processes=process) as pool:
         res = pool.starmap(_request, request_info_)
     return res
