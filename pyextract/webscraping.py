@@ -6,7 +6,7 @@ import multiprocessing as mp
 from bs4 import BeautifulSoup
 from selenium_stealth import stealth
 import time
-import headers as header_
+from . import headers as header_
 from selenium.webdriver.chrome.service import Service as ChromeService
 
 basic_request_header = dict(
@@ -52,12 +52,13 @@ def _request(url: str, keyword: str, headers: dict = None, soup:bool=False, max_
 
 
 def selenium_requests(url: str, keyword: str, soup:bool=False, max_retry:int=2, wait:int=0):
+    service = ChromeService()
     options = webdriver.ChromeOptions()
     options.add_argument("start-maximized")
     options.add_argument("--headless")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
-    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
+    driver = webdriver.Chrome(service=service, options=options)
     stealth(driver,
             languages=["en-US", "en"],
             vendor="Google Inc.",
