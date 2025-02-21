@@ -9,6 +9,7 @@ __pycache__/
 #Addeed
 .idea/
 base_python/
+pyproject.toml
 
 
 # Distribution / packaging

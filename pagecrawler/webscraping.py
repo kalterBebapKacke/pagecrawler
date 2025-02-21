@@ -51,11 +51,12 @@ def _request(url: str, keyword: str, headers: dict = None, soup:bool=False, max_
     return selenium_requests(url, keyword, soup)
 
 
-def selenium_requests(url: str, keyword: str, soup:bool=False, max_retry:int=2, wait:int=0):
+def selenium_requests(url: str, keyword: str, soup:bool=False, max_retry:int=2, wait:int=0, dev=False, func=None):
     service = ChromeService()
     options = webdriver.ChromeOptions()
     options.add_argument("start-maximized")
-    options.add_argument("--headless")
+    if dev is False:
+        options.add_argument("--headless")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
     driver = webdriver.Chrome(service=service, options=options)
@@ -71,15 +72,18 @@ def selenium_requests(url: str, keyword: str, soup:bool=False, max_retry:int=2, 
     retry = 0
     while retry != max_retry:
         time.sleep(wait)
-        source = driver.page_source
-        print(retry)
-        if source.__contains__(keyword):
-            driver.quit()
-            if soup:
-                return BeautifulSoup(source, 'html.parser')
-            else:
-                return source
-        retry += 1
+        if func is None:
+            if check_keyword(driver, keyword):
+                driver.quit()
+                return return_content(driver, soup)
+            retry += 1
+        else:
+            output = func(driver)
+            try:
+                driver.close()
+            except Exception:
+                pass
+            return output
     driver.quit()
 
 def setup():
@@ -106,6 +110,35 @@ def get_in_string(string: str, Str1, Str2):
         return string
     else:
         return False
+
+def check_keyword(driver, keyword):
+    source = driver.page_source
+    if source.__contains__(keyword):
+        return True
+    else:
+        return False
+
+def return_content(driver, soup=True):
+    source = driver.page_source
+    if soup:
+        return BeautifulSoup(source, 'html.parser')
+    else:
+        return source
+
+def clean_html(html_content):
+    # BeautifulSoup initialisieren
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    # Entfernt alle <style>-Tags
+    for style_tag in soup.find_all('style'):
+        style_tag.decompose()
+
+    # Entfernt alle <script>-Tags
+    for script_tag in soup.find_all('script'):
+        script_tag.decompose()
+
+    # Gibt das bereinigte HTML zurück
+    return str(soup)
 
 
 if __name__ == '__main__':
